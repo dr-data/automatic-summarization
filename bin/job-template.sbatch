@@ -15,7 +15,7 @@ trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM EXIT
 
 PWD=`pwd`
 compute_cmd="/bin/bash .compute"
-srun="srun --exclusive -N1 -n1"
+srun="srun --exclusive -n1"
 
 # unfolding slurm's compact cluster representation
 nodes_raw=`scontrol show hostname $SLURM_JOB_NODELIST`
@@ -60,7 +60,7 @@ done
 
 for node_index in $(seq 1 $COMPUTE_NODES_COUNT);
 do
-  for gpu_index in $(seq 0 $((COMPUTE_GPUS_PER_NODE-1)));
+  for gpu_index in $(seq 1 $COMPUTE_GPUS_PER_NODE);
   do
     # "wait -n" waits for any sub-process to exit doing this COMPUTE_NODES_COUNT*COMPUTE_GPUS_PER_NODE
     # times will wait for all node sub-processes to finish in case of any node sub-process failing, it
