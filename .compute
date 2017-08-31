@@ -39,7 +39,7 @@ master_hosts="$first:$master_port"
 ((worker_port=ps_port + 1))
 for node in "${nodes[@]}"; do
     for gpu_index in $(seq 1 $((COMPUTE_GPUS_PER_NODE))); do
-        if !((node == first)) || !((gpu_index == 1)); then
+        if ((node != first)) || ((gpu_index != 1)); then
             worker_hosts[$worker_port]="$node:$worker_port"
         fi
         ((worker_port=worker_port + 1))
@@ -78,7 +78,7 @@ if ((COMPUTE_NODE_INDEX == 0)) && ((COMPUTE_GPU_INDEX == 0)); then
 fi
 
 if ((COMPUTE_NODE_INDEX == 0)) && ((COMPUTE_GPU_INDEX == 0)); then
-    # starting the worker
+    # starting the master side by side with parameter server on the first node
     logfile=../master_$COMPUTE_NODE_INDEX.log
     touch $logfile # guarantees existence for "tail -f *.log"
     tf_config=$(printf "{%s, %s, %s}" "$cluster_spec" "$environment_spec" "$master_spec")
