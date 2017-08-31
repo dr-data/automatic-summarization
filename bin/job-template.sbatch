@@ -2,7 +2,7 @@
 
 #SBATCH --job-name=__NAME__
 #SBATCH --output=common.log
-#SBATCH --ntasks=__NODES__
+#SBATCH --ntasks=__TASKS__
 #SBATCH --nodes=__NODES__
 #SBATCH --gres=gpu:__GPUS__
 

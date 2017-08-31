@@ -86,6 +86,9 @@ rsync -av . "$RUN_DIR/src" --exclude=/.git
 
 mkdir -p "$RUN_DIR/results/keep"
 
+# determine the number of tasks
+TASKS=$((NODES * GPUS))
+
 # patch-creating job.sbatch file from job-template with our parameters
 sed \
     -e "s/__ID__/$HASH/g" \
@@ -93,6 +96,7 @@ sed \
     -e "s/__GLOBAL_LOG__/$GLOBAL_LOG/g" \
     -e "s/__NODES__/$NODES/g" \
     -e "s/__GPUS__/$GPUS/g" \
+    -e "s/__TASKS__/$TASKS/g" \
     bin/job-template.sbatch > $RUN_DIR/job.sbatch
 
 # enqueuing the new job description and run directory
