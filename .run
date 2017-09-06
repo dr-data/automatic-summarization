@@ -1,8 +1,5 @@
 #!/bin/sh
 
-# Set the proper matplotlib backend (FixMe)
-echo "backend : Agg" >> ${HOME}/.config/matplotlib/matplotlibrc
-
 # Set this to where you extracted the downloaded file
 export DATA_PATH=${COMPUTE_DATA_DIR}/Freebase/WEX/bpe
 

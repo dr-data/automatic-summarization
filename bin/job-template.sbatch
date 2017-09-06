@@ -43,6 +43,10 @@ export COMPUTE_JOB_LOG="common.log"
 export COMPUTE_GLOBAL_LOG="__GLOBAL_LOG__"
 export COMPUTE_GPUS_PER_NODE="__GPUS__"
 
+# Export matplotlib variables for the .compute script that will
+# get executed on every node of the allocated cluster
+export MPLBACKEND="agg"
+
 for node_index in $(seq 0 $((COMPUTE_NODES_COUNT-1)));
 do
   for gpu_index in $(seq 0 $((COMPUTE_GPUS_PER_NODE-1)));
