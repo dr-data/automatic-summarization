@@ -17,7 +17,7 @@ export DEV_TARGETS_REF=${DATA_PATH}/validation_corpus.target
 export TRAIN_STEPS=250000000
 
 # Set model directory
-export MODEL_DIR=./results/keep
+export MODEL_DIR=../results/keep
 
 python -m bin.train \
   --config_paths="
