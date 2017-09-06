@@ -79,7 +79,7 @@ tf.flags.DEFINE_string("output_dir", None,
                        to. If None, a local temporary directory is created.""")
 
 # Training parameters
-tf.flags.DEFINE_string("schedule", "continuous_train_and_eval",
+tf.flags.DEFINE_string("schedule", None,
                        """Estimator function to call, defaults to
                        continuous_train_and_eval for local run""")
 tf.flags.DEFINE_integer("train_steps", None,
