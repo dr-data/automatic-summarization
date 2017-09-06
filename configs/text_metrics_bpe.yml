@@ -4,9 +4,6 @@ default_params: &default_params
 
 metrics:
   - class: LogPerplexityMetricSpec
-  - class: BleuMetricSpec
-    params:
-      <<: *default_params
   - class: RougeMetricSpec
     params:
       <<: *default_params
