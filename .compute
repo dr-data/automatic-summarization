@@ -86,7 +86,7 @@ if ((COMPUTE_NODE_INDEX == 0)) && ((COMPUTE_GPU_INDEX == 0)); then
     CUDA_VISIBLE_DEVICES="$COMPUTE_GPU_INDEX" $base_cmd "$@" 2>&1 | ts "$time_format [master $COMPUTE_NODE_INDEX]" >$logfile &
 else
     # create worker identifier, its index in worker_hosts
-    worker_id=((COMPUTE_NODE_INDEX * COMPUTE_GPUS_PER_NODE + COMPUTE_GPU_INDEX - 1))
+    worker_id=$((COMPUTE_NODE_INDEX * COMPUTE_GPUS_PER_NODE + COMPUTE_GPU_INDEX - 1))
     # starting the worker
     logfile=../worker_$worker_id.log
     touch $logfile # guarantees existence for "tail -f *.log"
