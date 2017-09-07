@@ -15,7 +15,7 @@ trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM EXIT
 
 PWD=`pwd`
 compute_cmd="/bin/bash .compute"
-srun="srun --exclusive -n1"
+srun="srun -N1 -n1"
 
 # unfolding slurm's compact cluster representation
 nodes_raw=`scontrol show hostname $SLURM_JOB_NODELIST`
