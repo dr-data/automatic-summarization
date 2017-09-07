@@ -45,11 +45,11 @@ for node in "${nodes[@]}"; do
         ((worker_port=worker_port + 1))
     done
 done
-worker_hosts=$(printf ",%s" "${worker_hosts[@]}")
+worker_hosts=$(printf ",'%s'" "${worker_hosts[@]}")
 worker_hosts=${worker_hosts:1}
 
 # create cluster spec json
-cluster_spec=$(printf "'cluster': {'ps': [%s], 'master': [%s], 'worker': [%s]}" "$ps_hosts" "$master_hosts" "$worker_hosts")
+cluster_spec=$(printf "'cluster': {'ps': ['%s'], 'master': ['%s'], 'worker': [%s]}" "$ps_hosts" "$master_hosts" "$worker_hosts")
 
 # create environment spec json
 environment_spec="'environment': 'cloud'"
