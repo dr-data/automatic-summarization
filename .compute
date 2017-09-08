@@ -45,20 +45,20 @@ for node in "${nodes[@]}"; do
         ((worker_port=worker_port + 1))
     done
 done
-worker_hosts=$(printf ",'%s'" "${worker_hosts[@]}")
+worker_hosts=$(printf ",\"%s\"" "${worker_hosts[@]}")
 worker_hosts=${worker_hosts:1}
 
 # create cluster spec json
-cluster_spec=$(printf "'cluster': {'ps': ['%s'], 'master': ['%s'], 'worker': [%s]}" "$ps_hosts" "$master_hosts" "$worker_hosts")
+cluster_spec=$(printf "\"cluster\": {\"ps\": [\"%s\"], \"master\": [\"%s\"], \"worker\": [%s]}" "$ps_hosts" "$master_hosts" "$worker_hosts")
 
 # create environment spec json
-environment_spec="'environment': 'cloud'"
+environment_spec="\"environment\": \"cloud\""
 
 # create ps task spec json
-ps_spec="'task': {'type': 'ps', 'index': 0}"
+ps_spec="\"task\": {\"type\": \"ps\", \"index\": 0}"
 
 # create master task spec json
-master_spec="'task': {'type': 'master', 'index': 0}"
+master_spec="\"task\": {\"type\": \"master\", \"index\": 0}"
 
 # helpful for debugging potential networking issues
 echo "Starting allocated node no. $COMPUTE_NODE_INDEX gpu no. $COMPUTE_GPU_INDEX on $hostname of cluster (ps: $first:$ps_port, master: $master_hosts, workers: $worker_hosts) ..."
@@ -90,7 +90,7 @@ else
     # starting the worker
     logfile=../worker_$worker_id.log
     touch $logfile # guarantees existence for "tail -f *.log"
-    worker_spec=$(printf "'task': {'type': 'worker', 'index': %d}" $worker_id)
+    worker_spec=$(printf "\"task\": {\"type\": \"worker\", \"index\": %d}" $worker_id)
     tf_config=$(printf "{%s, %s, %s}" "$cluster_spec" "$environment_spec" "$worker_spec")
     export TF_CONFIG=$tf_config
     CUDA_VISIBLE_DEVICES="$COMPUTE_GPU_INDEX" $base_cmd "$@" 2>&1 | ts "$time_format [worker $worker_id]" >$logfile &
