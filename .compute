@@ -39,7 +39,7 @@ master_hosts="$first:$master_port"
 ((worker_port=ps_port + 1))
 for node in "${nodes[@]}"; do
     for gpu_index in $(seq 1 $((COMPUTE_GPUS_PER_NODE))); do
-        if ((node != first)) || ((gpu_index != 1)); then
+        if [ $node != $first ] || [ $gpu_index != 1 ]; then
             worker_hosts[$worker_port]="$node:$worker_port"
         fi
         ((worker_port=worker_port + 1))
