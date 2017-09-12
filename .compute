@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # this script gets executed once for each gpu on every node of an allocation;
-# in our case we use the provided COMPUTE_* env variables to construct a 
+# in our case we use the provided COMPUTE_* env variables to construct a
 # distributed TensorFlow cluster definition that is passed to the base command
 # through the TF_CONFIG env variable
 
@@ -21,7 +21,7 @@ first=${nodes[0]}
 hostname=`hostname`
 # log timestamp prefix
 time_format='[%Y-%m-%d %H:%M:%.S]'
-sub_processes=1
+sub_processes=0
 
 # defining all cluster ports in a way that avoids collisions with other cluster allocations
 # (that could eventually get scheduled on the same node)
@@ -60,41 +60,50 @@ ps_spec="\"task\": {\"type\": \"ps\", \"index\": 0}"
 # create master task spec json
 master_spec="\"task\": {\"type\": \"master\", \"index\": 0}"
 
-# helpful for debugging potential networking issues
-echo "Starting allocated node no. $COMPUTE_NODE_INDEX gpu no. $COMPUTE_GPU_INDEX on $hostname of cluster (ps: $first:$ps_port, master: $master_hosts, workers: $worker_hosts) ..."
+# loop over GPU's on this node
+for gpu_index in $(seq 0 $((COMPUTE_GPUS_PER_NODE-1)));
+do
+    # helpful for debugging potential networking issues
+    echo "Starting allocated node no. $COMPUTE_NODE_INDEX gpu no. $gpu_index on $hostname of cluster (ps: $first:$ps_port, master: $master_hosts, workers: $worker_hosts) ..."
 
-# starting the parameter server side by side with master on the first node;
-# so for the moment we only run one ps per allocation
-if ((COMPUTE_NODE_INDEX == 0)) && ((COMPUTE_GPU_INDEX == 0)); then
-    # CUDA_VISIBLE_DEVICES="" - as the parameter server does not require a GPU;
-    # the GPU would be shared with the workers on the same machine;
-    # it turned out that this would drastically reduce available GPU memory
-    sub_processes=2
-    logfile=../ps_$COMPUTE_NODE_INDEX.log
-    touch $logfile #environment guarantees existence for "tail -f *.log"
-    tf_config=$(printf "{%s, %s, %s}" "$cluster_spec" "$environment_spec" "$ps_spec")
-    export TF_CONFIG=$tf_config
-    CUDA_VISIBLE_DEVICES="" $base_cmd "$@" 2>&1 | ts "$time_format [ps     $COMPUTE_NODE_INDEX]" >$logfile &
-fi
+    # starting the parameter server side by side with master on the first node;
+    # so for the moment we only run one ps per allocation
+    if ((COMPUTE_NODE_INDEX == 0)) && ((gpu_index == 0)); then
+        # track subprocesses to be able to wait on them
+        sub_processes=$((sub_processes + 1))
+        # CUDA_VISIBLE_DEVICES="" - as the parameter server does not require a GPU;
+        # the GPU would be shared with the workers on the same machine;
+        # it turned out that this would drastically reduce available GPU memory
+        logfile=../ps_$COMPUTE_NODE_INDEX.log
+        touch $logfile #environment guarantees existence for "tail -f *.log"
+        tf_config=$(printf "{%s, %s, %s}" "$cluster_spec" "$environment_spec" "$ps_spec")
+        export TF_CONFIG=$tf_config
+        CUDA_VISIBLE_DEVICES="" $base_cmd "$@" 2>&1 | ts "$time_format [ps     $COMPUTE_NODE_INDEX]" >$logfile &
+    fi
 
-if ((COMPUTE_NODE_INDEX == 0)) && ((COMPUTE_GPU_INDEX == 0)); then
-    # starting the master side by side with parameter server on the first node
-    logfile=../master_$COMPUTE_NODE_INDEX.log
-    touch $logfile # guarantees existence for "tail -f *.log"
-    tf_config=$(printf "{%s, %s, %s}" "$cluster_spec" "$environment_spec" "$master_spec")
-    export TF_CONFIG=$tf_config
-    CUDA_VISIBLE_DEVICES="$COMPUTE_GPU_INDEX" $base_cmd "$@" 2>&1 | ts "$time_format [master $COMPUTE_NODE_INDEX]" >$logfile &
-else
-    # create worker identifier, its index in worker_hosts
-    worker_id=$((COMPUTE_NODE_INDEX * COMPUTE_GPUS_PER_NODE + COMPUTE_GPU_INDEX - 1))
-    # starting the worker
-    logfile=../worker_$worker_id.log
-    touch $logfile # guarantees existence for "tail -f *.log"
-    worker_spec=$(printf "\"task\": {\"type\": \"worker\", \"index\": %d}" $worker_id)
-    tf_config=$(printf "{%s, %s, %s}" "$cluster_spec" "$environment_spec" "$worker_spec")
-    export TF_CONFIG=$tf_config
-    CUDA_VISIBLE_DEVICES="$COMPUTE_GPU_INDEX" $base_cmd "$@" 2>&1 | ts "$time_format [worker $worker_id]" >$logfile &
-fi
+    if ((COMPUTE_NODE_INDEX == 0)) && ((gpu_index == 0)); then
+        # track subprocesses to be able to wait on them
+        sub_processes=$((sub_processes + 1))
+        # starting the master side by side with parameter server on the first node
+        logfile=../master_$COMPUTE_NODE_INDEX.log
+        touch $logfile # guarantees existence for "tail -f *.log"
+        tf_config=$(printf "{%s, %s, %s}" "$cluster_spec" "$environment_spec" "$master_spec")
+        export TF_CONFIG=$tf_config
+        CUDA_VISIBLE_DEVICES="$gpu_index" $base_cmd "$@" 2>&1 | ts "$time_format [master $COMPUTE_NODE_INDEX]" >$logfile &
+    else
+        # track subprocesses to be able to wait on them
+        sub_processes=$((sub_processes + 1))
+        # create worker identifier, its index in worker_hosts
+        worker_id=$((COMPUTE_NODE_INDEX * COMPUTE_GPUS_PER_NODE + gpu_index - 1))
+        # starting the worker
+        logfile=../worker_$worker_id.log
+        touch $logfile # guarantees existence for "tail -f *.log"
+        worker_spec=$(printf "\"task\": {\"type\": \"worker\", \"index\": %d}" $worker_id)
+        tf_config=$(printf "{%s, %s, %s}" "$cluster_spec" "$environment_spec" "$worker_spec")
+        export TF_CONFIG=$tf_config
+        CUDA_VISIBLE_DEVICES="$gpu_index" $base_cmd "$@" 2>&1 | ts "$time_format [worker $worker_id]" >$logfile &
+    fi
+done
 
 for index in $(seq 1 $sub_processes);
 do

@@ -49,35 +49,27 @@ export MPLBACKEND="agg"
 
 for node_index in $(seq 0 $((COMPUTE_NODES_COUNT-1)));
 do
-  for gpu_index in $(seq 0 $((COMPUTE_GPUS_PER_NODE-1)));
-  do
-    # will tell every instance of the .compute script, which node of the cluster it represents
-    export COMPUTE_NODE_INDEX=$node_index
-    # will tell every instance of the .compute script, which gpu of the node it represents
-    export COMPUTE_GPU_INDEX=$gpu_index
-    # the node has to be specified by "-w" to guarantee execution under the correct COMPUTE_NODE_INDEX
-    # if some log line contains "GLOBAL LOG", the remaining string is emitted to the provided log file
-    $srun -w ${nodes[node_index]} /bin/bash -c "cd src && $compute_cmd" \
-      | tee >(sed -n -e 's/^.*GLOBAL LOG: //p' >> $COMPUTE_GLOBAL_LOG) &
-  done
+  # will tell every instance of the .compute script, which node of the cluster it represents
+  export COMPUTE_NODE_INDEX=$node_index
+  # the node has to be specified by "-w" to guarantee execution under the correct COMPUTE_NODE_INDEX
+  # if some log line contains "GLOBAL LOG", the remaining string is emitted to the provided log file
+  $srun -w ${nodes[node_index]} /bin/bash -c "cd src && $compute_cmd" \
+    | tee >(sed -n -e 's/^.*GLOBAL LOG: //p' >> $COMPUTE_GLOBAL_LOG) &
 done
 
 for node_index in $(seq 1 $COMPUTE_NODES_COUNT);
 do
-  for gpu_index in $(seq 1 $COMPUTE_GPUS_PER_NODE);
-  do
-    # "wait -n" waits for any sub-process to exit doing this COMPUTE_NODES_COUNT*COMPUTE_GPUS_PER_NODE
-    # times will wait for all node sub-processes to finish in case of any node sub-process failing, it
-    # will exit immediately
-    wait -n
-    code=$?
-    if ((code > 0)); then
-      echo "One node failed with exit code $code."
-      exit $code
-    else
-      echo "One node succeeded."
-    fi
-  done
+  # "wait -n" waits for any sub-process to exit doing this COMPUTE_NODES_COUNT
+  # times will wait for all node sub-processes to finish in case of any node
+  # sub-process failing, it will exit immediately
+  wait -n
+  code=$?
+  if ((code > 0)); then
+    echo "One node failed with exit code $code."
+    exit $code
+  else
+    echo "One node succeeded."
+  fi
 done
 
 echo "Success. Quitting..."
