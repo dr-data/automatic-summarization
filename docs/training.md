@@ -1,8 +1,8 @@
-For a concrete of how to run the training script, refer to the [Neural Machine Translation Tutorial](nmt/).
+For a concrete of how to run the training script, refer to the [Neural Machine Translation Tutorial](nmt.md).
 
 ## Configuring Training
 
-Also see [Configuration](concepts/#configuration). The configuration for input data, models, and training parameters is done via [YAML](https://en.wikipedia.org/wiki/YAML). You can pass YAML strings directly to the training script, or create configuration files and pass their paths to the script. These two approaches are technically equivalent. However, large YAML strings can become difficult to manage so we recommend the latter one. For example, the following two are equivalent:
+Also see [Configuration](concepts.md/#configuration). The configuration for input data, models, and training parameters is done via [YAML](https://en.wikipedia.org/wiki/YAML). You can pass YAML strings directly to the training script, or create configuration files and pass their paths to the script. These two approaches are technically equivalent. However, large YAML strings can become difficult to manage so we recommend the latter one. For example, the following two are equivalent:
 
 1\. Pass FLAGS directly:
 
@@ -39,7 +39,7 @@ python -m bin.train --config_paths config.yml
 
 Multiple configuration files are merged recursively, in the order they are passed. This means you can have separate configuration files for model hyperparameters, input data, and training options, and mix and match as needed.
 
-For a concrete examples of configuration files, refer to the [example configurations](https://github.com/google/seq2seq/tree/master/example_configs) and [Neural Machine Translation Tutorial](NMT/).
+For a concrete examples of configuration files, refer to the [example configurations](https://github.com/google/seq2seq/tree/master/example_configs) and [Neural Machine Translation Tutorial](nmt.md).
 
 
 ## Monitoring Training
